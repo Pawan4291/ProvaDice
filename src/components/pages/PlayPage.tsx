@@ -275,7 +275,7 @@ export default function PlayPage() {
                       endTime={roundState?.endTime ?? null}
                       roundDurationMs={ROUND_DURATION_MS}
                       onTimeUpdate={setTimeRemainingMs}
-                      onExpire={fetchRoundStatus}
+                      onExpire={() => { tickClock(); fetchRoundStatus(); }}
                     />
                   )}
 

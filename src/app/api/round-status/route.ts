@@ -21,6 +21,7 @@ export async function GET() {
         revealSeed: r.revealSeed,
         finalHash: r.finalHash,
         winnerNametag: r.winnerNametag,
+        winningNumber: r.winningNumber,
         totalPotBaseUnits: r.totalPotBaseUnits,
         playerCount: r.playerCount,
         payoutTxId: r.payoutTxId,

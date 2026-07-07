@@ -142,7 +142,12 @@ async function recoverFromRestart(): Promise<void> {
  * Main clock tick — called periodically to check round state
  * Should be called every ~5 seconds from /api/clock
  */
+let ticking = false;
+
 export async function tickClock(): Promise<{ action: string; roundId?: string }> {
+  if (ticking) return { action: 'busy' };
+  ticking = true;
+  try {
   const state = await getCurrentRoundState();
 
   if (!state) {
@@ -169,6 +174,13 @@ export async function tickClock(): Promise<{ action: string; roundId?: string }>
       const result = await settleRound(state.roundId, sendUCT);
       currentRoundId = null;
 
+      // Immediately open the next round instead of waiting for the next tick
+      const treasury = await checkAndRefillTreasury();
+      if (treasury.sufficient) {
+        const newRound = await openNewRound();
+        currentRoundId = newRound.roundId;
+      }
+
       if (result.cancelled) {
         console.log(`[RoundClock] Round ${state.roundId} cancelled (not enough players)`);
         return { action: 'round_cancelled', roundId: state.roundId };
@@ -182,7 +194,10 @@ export async function tickClock(): Promise<{ action: string; roundId?: string }>
     }
   }
 
-  return { action: 'round_active', roundId: state.roundId };
+ return { action: 'round_active', roundId: state.roundId };
+  } finally {
+    ticking = false;
+  }
 }
 
 export function getCurrentRoundId(): string | null {
