@@ -37,6 +37,7 @@ export interface RoundState {
   bets: BetInfo[];
   timeRemainingMs: number;
   winnerNametag?: string;
+  winningNumber?: number;
   revealSeed?: string;
   finalHash?: string;
   payoutTxId?: string;
@@ -46,6 +47,7 @@ export interface BetInfo {
   nametag: string;
   amountBaseUnits: string;
   txId: string;
+  pickedNumber?: number;
   confirmedAt: string;
 }
 
@@ -131,10 +133,12 @@ export async function getCurrentRoundState(): Promise<RoundState | null> {
       nametag: b.nametag,
       amountBaseUnits: b.amountBaseUnits,
       txId: b.txId,
+      pickedNumber: b.pickedNumber ?? undefined,
       confirmedAt: b.confirmedAt.toISOString(),
     })),
     timeRemainingMs,
     winnerNametag: r.winnerNametag ?? undefined,
+    winningNumber: r.winningNumber ?? undefined,
     revealSeed: r.revealSeed ?? undefined,
     finalHash: r.finalHash ?? undefined,
     payoutTxId: r.payoutTxId ?? undefined,
@@ -150,8 +154,12 @@ export async function recordBet(
   nametag: string,
   amountBaseUnits: bigint,
   txId: string,
-  memo?: string
+  memo?: string,
+  pickedNumber?: number
 ): Promise<{ accepted: boolean; reason?: string }> {
+  if (!pickedNumber || pickedNumber < 1 || pickedNumber > 6) {
+    return { accepted: false, reason: 'pickedNumber must be 1-6' };
+  }
   // Get current round
   const round = await db
     .select()
@@ -208,6 +216,7 @@ export async function recordBet(
     amountBaseUnits: amountBaseUnits.toString(),
     txId,
     memo,
+    pickedNumber,
     confirmedAt: new Date(),
   });
 
@@ -337,7 +346,7 @@ export async function settleRound(
     return { settled: true, cancelled: true };
   }
 
-  // Get seed from memory
+ // Get seed from memory
   const seed = roundSeeds.get(roundId);
   if (!seed) {
     throw new Error(`Seed not found for round ${roundId} — cannot settle fairly`);
@@ -349,58 +358,85 @@ export async function settleRound(
 
   const finalHash = computeRevealHash(seed, lastTxHash);
 
+  // Classic dice: map finalHash to a number 1-6
+  const hashBigInt = BigInt('0x' + finalHash);
+  const winningNumber = Number(hashBigInt % BigInt(6)) + 1;
+
   await appendAuditEntry('ROUND_REVEAL', {
     roundId,
     commitHash: r.commitHash,
     revealSeed: seed,
     lastTxHash,
     finalHash,
-    note: 'finalHash = SHA256("provadice-reveal:" + seed + ":" + lastTxHash)',
+    winningNumber,
+    note: 'winningNumber = (BigInt(0x + finalHash) % 6) + 1',
   });
 
-  // Select winner using weighted ranges
-  const betList = roundBets.map((b) => ({
-    nametag: b.nametag,
-    amountBaseUnits: BigInt(b.amountBaseUnits),
-  }));
   const totalPot = BigInt(r.totalPotBaseUnits);
-  const winnerNametag = selectWinner(finalHash, betList, totalPot);
+  const houseFeeNumerator = BigInt(Math.floor(HOUSE_FEE_PCT * 10000));
+  const houseFee = (totalPot * houseFeeNumerator) / BigInt(10000);
+  const payoutPool = totalPot - houseFee;
+
+  const winners = roundBets.filter((b) => b.pickedNumber === winningNumber);
+  const winnersTotalStake = winners.reduce(
+    (sum, b) => sum + BigInt(b.amountBaseUnits),
+    BigInt(0)
+  );
 
   await appendAuditEntry('ROUND_WIN', {
     roundId,
-    winnerNametag,
+    winningNumber,
     finalHash,
     totalPotBaseUnits: r.totalPotBaseUnits,
-    algorithm:
-      'hashBigInt = BigInt(0x + finalHash); randomValue = hashBigInt % totalPot; walk cumulative bet ranges, first bettor where cumulative > randomValue wins',
+    winnerCount: winners.length,
+    algorithm: 'All bettors who picked winningNumber split payoutPool proportional to their stake. If no winners, house keeps the pot.',
   });
 
-  // Calculate payout (house fee deducted)
-  const houseFeeNumerator = BigInt(Math.floor(HOUSE_FEE_PCT * 10000));
-  const houseFee = (totalPot * houseFeeNumerator) / BigInt(10000);
-  const payout = totalPot - houseFee;
+  let winnerNametag = winners.length > 0 ? winners.map((w) => w.nametag).join(',') : 'HOUSE';
+  const payoutTxIds: string[] = [];
 
-  // Send payout — real transfer
-  let payoutTxId: string;
-  try {
-    payoutTxId = await sendUCT(
-      winnerNametag,
-      payout,
-      `ProvaDice round #${roundId} win`
-    );
-  } catch (err) {
-    console.error('Payout failed:', err);
+  if (winners.length === 0) {
     await appendAuditEntry('ROUND_PAYOUT', {
       roundId,
-      winnerNametag,
-      payoutBaseUnits: payout.toString(),
-      error: err instanceof Error ? err.message : String(err),
-      status: 'FAILED',
+      winningNumber,
+      payoutBaseUnits: '0',
+      note: 'No winners this round — house keeps the pot',
+      status: 'SUCCESS',
     });
-    throw err;
+  } else {
+    for (const winner of winners) {
+      const share = (BigInt(winner.amountBaseUnits) * payoutPool) / winnersTotalStake;
+      try {
+        const txId = await sendUCT(
+          winner.nametag,
+          share,
+          `ProvaDice round #${roundId} win — rolled ${winningNumber}`
+        );
+        payoutTxIds.push(txId);
+        await appendAuditEntry('ROUND_PAYOUT', {
+          roundId,
+          winnerNametag: winner.nametag,
+          payoutBaseUnits: share.toString(),
+          txId,
+          status: 'SUCCESS',
+        });
+      } catch (err) {
+        console.error(`Payout failed for ${winner.nametag}:`, err);
+        await appendAuditEntry('ROUND_PAYOUT', {
+          roundId,
+          winnerNametag: winner.nametag,
+          payoutBaseUnits: share.toString(),
+          error: err instanceof Error ? err.message : String(err),
+          status: 'FAILED',
+        });
+      }
+    }
   }
 
-  // Update round in DB
+  const payoutTxId = payoutTxIds[0] ?? 'no-winner';
+  const payout = payoutPool;
+
+ // Update round in DB
   await db
     .update(rounds)
     .set({
@@ -408,38 +444,32 @@ export async function settleRound(
       revealSeed: seed,
       finalHash,
       winnerNametag,
+      winningNumber,
       payoutTxId,
     })
     .where(eq(rounds.roundId, roundId));
 
-  // Update leaderboard
-  await db
-    .insert(leaderboardCache)
-    .values({
-      nametag: winnerNametag,
-      totalWins: 1,
-      totalWonBaseUnits: payout.toString(),
-      lastWinAt: new Date(),
-    })
-    .onConflictDoUpdate({
-      target: leaderboardCache.nametag,
-      set: {
-        totalWins: sql`${leaderboardCache.totalWins} + 1`,
-        totalWonBaseUnits: sql`(${leaderboardCache.totalWonBaseUnits}::numeric + ${payout.toString()}::numeric)::text`,
+  // Update leaderboard for each winner
+  for (const winner of winners) {
+    const share = (BigInt(winner.amountBaseUnits) * payoutPool) / winnersTotalStake;
+    await db
+      .insert(leaderboardCache)
+      .values({
+        nametag: winner.nametag,
+        totalWins: 1,
+        totalWonBaseUnits: share.toString(),
         lastWinAt: new Date(),
-        updatedAt: new Date(),
-      },
-    });
-
-  await appendAuditEntry('ROUND_PAYOUT', {
-    roundId,
-    winnerNametag,
-    payoutBaseUnits: payout.toString(),
-    houseFeeBaseUnits: houseFee.toString(),
-    totalPotBaseUnits: r.totalPotBaseUnits,
-    payoutTxId,
-    status: 'SUCCESS',
-  });
+      })
+      .onConflictDoUpdate({
+        target: leaderboardCache.nametag,
+        set: {
+          totalWins: sql`${leaderboardCache.totalWins} + 1`,
+          totalWonBaseUnits: sql`(${leaderboardCache.totalWonBaseUnits}::numeric + ${share.toString()}::numeric)::text`,
+          lastWinAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+  }
 
   // Clean up seed from memory
   roundSeeds.delete(roundId);

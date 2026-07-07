@@ -69,12 +69,16 @@ export async function initRoundClock(): Promise<void> {
       if (match) targetRoundId = match[0];
     }
 
+   const numberMatch = transfer.memo.match(/num:(\d)/);
+    const pickedNumber = numberMatch ? parseInt(numberMatch[1], 10) : undefined;
+
     const result = await recordBet(
       targetRoundId,
       transfer.fromNametag,
       transfer.amountBaseUnits,
       transfer.txId,
-      transfer.memo
+      transfer.memo,
+      pickedNumber
     );
 
     if (!result.accepted) {
@@ -191,11 +195,12 @@ export async function processManualBet(
   nametag: string,
   amountBaseUnits: bigint,
   txId: string,
-  memo: string
+  memo: string,
+  pickedNumber?: number
 ): Promise<{ accepted: boolean; reason?: string }> {
   if (!currentRoundId) {
     return { accepted: false, reason: 'No active round' };
   }
 
-  return recordBet(currentRoundId, nametag, amountBaseUnits, txId, memo);
+  return recordBet(currentRoundId, nametag, amountBaseUnits, txId, memo, pickedNumber);
 }

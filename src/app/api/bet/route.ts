@@ -17,21 +17,26 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as {
+   const body = await req.json() as {
       nametag?: string;
       amountBaseUnits?: string;
       txId?: string;
       memo?: string;
       roundId?: string;
+      pickedNumber?: number;
     };
 
-    const { nametag, amountBaseUnits, txId, memo } = body;
+    const { nametag, amountBaseUnits, txId, memo, pickedNumber } = body;
 
     if (!nametag || !amountBaseUnits || !txId) {
       return NextResponse.json(
         { error: 'Missing required fields: nametag, amountBaseUnits, txId' },
         { status: 400 }
       );
+    }
+
+    if (!pickedNumber || pickedNumber < 1 || pickedNumber > 6) {
+      return NextResponse.json({ error: 'pickedNumber must be 1-6' }, { status: 400 });
     }
 
     // Validate amount is a valid bigint string
@@ -46,7 +51,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Amount must be positive' }, { status: 400 });
     }
 
-    const result = await processManualBet(nametag, amount, txId, memo ?? '');
+   const result = await processManualBet(nametag, amount, txId, memo ?? '', pickedNumber);
 
     if (!result.accepted) {
       return NextResponse.json({ accepted: false, reason: result.reason }, { status: 422 });

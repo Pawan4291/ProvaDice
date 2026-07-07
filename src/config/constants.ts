@@ -7,7 +7,7 @@ export const UCT_DECIMALS = 18; // 1000000000000000000 base units = 1 UCT (confi
 export const UCT_BASE_UNIT = BigInt("1000000000000000000"); // 1e18
 
 export const ROUND_DURATION_MS = 60_000; // 60 seconds fixed round
-export const MIN_PLAYERS_PER_ROUND = 2;
+export const MIN_PLAYERS_PER_ROUND = 1;
 export const MAX_PLAYERS_PER_ROUND = 50;
 export const HOUSE_FEE_PCT = 0.02; // 2%
 export const MAX_BET_PCT_OF_POT = 0.20; // no single user > 20% of pot

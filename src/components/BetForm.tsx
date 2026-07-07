@@ -10,7 +10,7 @@ interface BetFormProps {
   onBetSubmitted?: (txId: string, amountBaseUnits: string) => void;
   walletConnected: boolean;
   nametag: string | null;
-  onSendBet: (amountBaseUnits: bigint, roundId: string) => Promise<string>;
+ onSendBet: (amountBaseUnits: bigint, roundId: string, pickedNumber: number) => Promise<string>;
 }
 
 export default function BetForm({
@@ -21,7 +21,8 @@ export default function BetForm({
   nametag,
   onSendBet,
 }: BetFormProps) {
-  const [betUCT, setBetUCT] = useState('');
+ const [betUCT, setBetUCT] = useState('');
+  const [pickedNumber, setPickedNumber] = useState<number | null>(null);
   const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [txId, setTxId] = useState('');
@@ -31,7 +32,12 @@ export default function BetForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!walletConnected || !nametag || !roundId) return;
+   if (!walletConnected || !nametag || !roundId) return;
+
+    if (!pickedNumber) {
+      setErrorMsg('Pick a number from 1 to 6');
+      return;
+    }
 
     const amount = parseFloat(betUCT);
     if (isNaN(amount) || amount <= 0) {
@@ -47,19 +53,20 @@ export default function BetForm({
 
     try {
       // Send via Sphere wallet
-      const sentTxId = await onSendBet(amountBaseUnits, roundId);
+     const sentTxId = await onSendBet(amountBaseUnits, roundId, pickedNumber);
       setTxId(sentTxId);
 
       // Notify house agent
       const res = await fetch('/api/bet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+       body: JSON.stringify({
           nametag,
           amountBaseUnits: amountBaseUnits.toString(),
           txId: sentTxId,
-          memo: `ProvaDice bet round:${roundId}`,
+          memo: `ProvaDice bet round:${roundId} num:${pickedNumber}`,
           roundId,
+          pickedNumber,
         }),
       });
 
@@ -71,9 +78,10 @@ export default function BetForm({
         return;
       }
 
-      setStatus('success');
+     setStatus('success');
       onBetSubmitted?.(sentTxId, amountBaseUnits.toString());
       setBetUCT('');
+      setPickedNumber(null);
 
       setTimeout(() => setStatus('idle'), 5000);
     } catch (err) {
@@ -141,6 +149,29 @@ export default function BetForm({
           ))}
         </div>
 
+       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          {[1, 2, 3, 4, 5, 6].map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => setPickedNumber(n)}
+              disabled={status === 'pending'}
+              style={{
+                flex: 1,
+                padding: '10px 0',
+                borderRadius: 8,
+                border: pickedNumber === n ? '1px solid #f97316' : '1px solid rgba(249,115,22,0.3)',
+                background: pickedNumber === n ? 'rgba(249,115,22,0.2)' : 'rgba(249,115,22,0.05)',
+                color: pickedNumber === n ? '#f97316' : '#888',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+
         <div style={{ marginBottom: 16 }}>
           <input
             type="number"
@@ -199,7 +230,7 @@ export default function BetForm({
 
         <motion.button
           type="submit"
-          disabled={!roundId || status === 'pending' || !betUCT}
+         disabled={!roundId || status === 'pending' || !betUCT || !pickedNumber}
           whileHover={roundId && status !== 'pending' && betUCT ? { scale: 1.02 } : {}}
           whileTap={roundId && status !== 'pending' && betUCT ? { scale: 0.98 } : {}}
           className="btn-orange"
