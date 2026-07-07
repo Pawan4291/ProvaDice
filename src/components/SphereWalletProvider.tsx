@@ -34,6 +34,7 @@ const DAPP_INFO = {
   name: 'ProvaDice',
   description: 'Provably-fair weighted-pot dice game on Unicity Sphere',
   url: typeof window !== 'undefined' ? window.location.origin : 'https://provadice.vercel.app',
+  network: 'testnet',
 };
 
 const HOUSE_NAMETAG =
