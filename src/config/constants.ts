@@ -6,7 +6,7 @@ export const UCT_SYMBOL = "UCT";
 export const UCT_DECIMALS = 18; // 1000000000000000000 base units = 1 UCT (confirmed from testnet)
 export const UCT_BASE_UNIT = BigInt("1000000000000000000"); // 1e18
 
-export const ROUND_DURATION_MS = 60_000; // 60 seconds fixed round
+export const ROUND_DURATION_MS = 120_000; // 2min fixed round
 export const MIN_PLAYERS_PER_ROUND = 1;
 export const MAX_PLAYERS_PER_ROUND = 50;
 export const HOUSE_FEE_PCT = 0.02; // 2%

@@ -11,6 +11,7 @@ import {
   openNewRound,
   getCurrentRoundState,
   settleRound,
+  getRecentRounds,
 } from './roundManager';
 import { checkAndRefillTreasury } from './faucet';
 import { sendUCT, initHouseWallet, subscribeToIncoming } from './houseWallet';
@@ -150,6 +151,15 @@ export async function tickClock(): Promise<{ action: string; roundId?: string }>
   const state = await getCurrentRoundState();
 
   if (!state) {
+    // No active round — wait out a 10s cooldown after the last round before opening the next
+    const [lastRound] = await getRecentRounds(1);
+    if (lastRound) {
+      const sinceEnd = Date.now() - new Date(lastRound.endTime).getTime();
+      if (sinceEnd < 10_000) {
+        return { action: 'cooldown' };
+      }
+    }
+
     // No active round — check treasury and open a new one
     const treasury = await checkAndRefillTreasury();
 
@@ -172,12 +182,7 @@ export async function tickClock(): Promise<{ action: string; roundId?: string }>
     try {
       const result = await settleRound(state.roundId, sendUCT);
       currentRoundId = null;
-      const treasury = await checkAndRefillTreasury();
-      if (treasury.sufficient) {
-        const newRound = await openNewRound();
-        currentRoundId = newRound.roundId;
-      }
-      return { action: 'round_settled_retry', roundId: state.roundId };
+      return { action: result.cancelled ? 'round_cancelled_retry' : 'round_settled_retry', roundId: state.roundId };
     } catch (err) {
       console.error(`Retry settle failed for ${state.roundId}:`, err);
       return { action: 'settle_retry_failed', roundId: state.roundId };
@@ -190,13 +195,6 @@ export async function tickClock(): Promise<{ action: string; roundId?: string }>
     try {
       const result = await settleRound(state.roundId, sendUCT);
       currentRoundId = null;
-
-      // Immediately open the next round instead of waiting for the next tick
-      const treasury = await checkAndRefillTreasury();
-      if (treasury.sufficient) {
-        const newRound = await openNewRound();
-        currentRoundId = newRound.roundId;
-      }
 
       if (result.cancelled) {
         console.log(`[RoundClock] Round ${state.roundId} cancelled (not enough players)`);
