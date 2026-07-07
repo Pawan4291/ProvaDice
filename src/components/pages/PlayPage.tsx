@@ -649,7 +649,7 @@ export default function PlayPage() {
                   </motion.div>
 
                   {/* Bet form */}
-                  <BetForm
+                 <BetForm
                     roundId={roundState?.roundId ?? null}
                     totalPotBaseUnits={roundState?.totalPotBaseUnits ?? '0'}
                     walletConnected={connected}
@@ -657,6 +657,8 @@ export default function PlayPage() {
                     onSendBet={sendBet}
                     onBetSubmitted={fetchRoundStatus}
                     alreadyBet={!!userBet}
+                    confirmedPick={userBet?.pickedNumber}
+                    confirmedAmount={userBet ? baseUnitsToUct(userBet.amountBaseUnits) : undefined}
                   />
                 </div>
               )}

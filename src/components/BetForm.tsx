@@ -10,8 +10,10 @@ interface BetFormProps {
   onBetSubmitted?: (txId: string, amountBaseUnits: string) => void;
   walletConnected: boolean;
   nametag: string | null;
- onSendBet: (amountBaseUnits: bigint, roundId: string, pickedNumber: number) => Promise<string>;
+onSendBet: (amountBaseUnits: bigint, roundId: string, pickedNumber: number) => Promise<string>;
   alreadyBet?: boolean;
+  confirmedPick?: number;
+  confirmedAmount?: number;
 }
 
 export default function BetForm({
@@ -22,6 +24,8 @@ export default function BetForm({
   nametag,
   onSendBet,
   alreadyBet,
+  confirmedPick,
+  confirmedAmount,
 }: BetFormProps) {
  const [betUCT, setBetUCT] = useState('');
   const [pickedNumber, setPickedNumber] = useState<number | null>(null);
@@ -124,6 +128,26 @@ export default function BetForm({
         )}
       </div>
 
+      {alreadyBet && confirmedPick && (
+        <div style={{
+          background: 'rgba(249,115,22,0.15)',
+          border: '2px solid #f97316',
+          borderRadius: 14,
+          padding: '16px 20px',
+          marginBottom: 16,
+          textAlign: 'center',
+        }}>
+          <div style={{ fontSize: '0.7rem', color: '#aaa', letterSpacing: '0.1em', marginBottom: 6 }}>
+            YOUR BET THIS ROUND
+          </div>
+          <div style={{ fontSize: '2rem', fontWeight: 900, color: '#f97316' }}>
+            Number {confirmedPick}
+          </div>
+          <div style={{ fontSize: '0.9rem', color: '#ddd', marginTop: 4 }}>
+            {confirmedAmount?.toFixed(4)} {UCT_SYMBOL} staked
+          </div>
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         {/* Quick bet buttons */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
