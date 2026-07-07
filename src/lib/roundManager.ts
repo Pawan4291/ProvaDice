@@ -67,12 +67,13 @@ export async function openNewRound(): Promise<RoundState> {
   // Store seed in memory only
   roundSeeds.set(roundId, seed);
 
-  await db.insert(rounds).values({
+ await db.insert(rounds).values({
     roundId,
     status: 'open',
     startTime,
     endTime,
     commitHash,
+    revealSeed: seed,
     totalPotBaseUnits: '0',
     playerCount: 0,
   });
@@ -346,8 +347,8 @@ export async function settleRound(
     return { settled: true, cancelled: true };
   }
 
- // Get seed from memory
-  const seed = roundSeeds.get(roundId);
+ // Get seed from DB (survives across serverless instances, unlike the in-memory map)
+  const seed = r.revealSeed;
   if (!seed) {
     throw new Error(`Seed not found for round ${roundId} — cannot settle fairly`);
   }
