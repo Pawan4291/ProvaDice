@@ -567,15 +567,17 @@ export default function PlayPage() {
     </div>
 
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-        {[
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+       {[
           { icon: '🔐', label: 'Provably Fair', desc: 'Commit-reveal scheme' },
           { icon: '⚡', label: 'Instant Payouts', desc: 'Auto-sent on settle' },
           { icon: '⚖️', label: 'Weighted Pot', desc: 'Bet more = more odds' },
+          { icon: '🛡️', label: 'Auto Refunds', desc: 'If round underfills' },
+          { icon: '📜', label: 'Audit Log', desc: 'Every event on record' },
         ].map((f) => (
           <div
             key={f.label}
-            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', background: 'rgba(249,115,22,0.03)', border: '1px solid rgba(249,115,22,0.08)', borderRadius: 10, marginBottom: 8 }}
+           style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', background: 'rgba(249,115,22,0.03)', border: '1px solid rgba(249,115,22,0.08)', borderRadius: 10 }}
           >
             <span style={{ fontSize: '1.2rem' }}>{f.icon}</span>
             <div>

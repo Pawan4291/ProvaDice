@@ -106,7 +106,7 @@ export default function BetForm({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
       className="card-glass"
-      style={{ borderRadius: 20, padding: 28 }}
+      style={{ borderRadius: 20, padding: 28, height: '100%', display: 'flex', flexDirection: 'column' }}
     >
       <h3
         style={{
@@ -148,7 +148,7 @@ export default function BetForm({
           </div>
         </div>
       )}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Quick bet buttons */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
           {quickBets.map((v) => (
