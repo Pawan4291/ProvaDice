@@ -78,12 +78,14 @@ export default function BetForm({
         return;
       }
 
-     setStatus('success');
+    setStatus('success');
       onBetSubmitted?.(sentTxId, amountBaseUnits.toString());
-      setBetUCT('');
-      setPickedNumber(null);
 
-      setTimeout(() => setStatus('idle'), 5000);
+      setTimeout(() => {
+        setStatus('idle');
+        setBetUCT('');
+        setPickedNumber(null);
+      }, 5000);
     } catch (err) {
       setStatus('error');
       setErrorMsg(err instanceof Error ? err.message : 'Failed to send bet');

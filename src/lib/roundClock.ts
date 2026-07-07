@@ -142,11 +142,10 @@ async function recoverFromRestart(): Promise<void> {
  * Main clock tick — called periodically to check round state
  * Should be called every ~5 seconds from /api/clock
  */
-let ticking = false;
-
 export async function tickClock(): Promise<{ action: string; roundId?: string }> {
-  if (ticking) return { action: 'busy' };
-  ticking = true;
+  const lockResult = await db.execute(sql`SELECT pg_try_advisory_lock(727271) as locked`);
+  const locked = (lockResult as any).rows?.[0]?.locked ?? (lockResult as any)[0]?.locked;
+  if (!locked) return { action: 'busy' };
   try {
   const state = await getCurrentRoundState();
 
@@ -194,9 +193,9 @@ export async function tickClock(): Promise<{ action: string; roundId?: string }>
     }
   }
 
- return { action: 'round_active', roundId: state.roundId };
+return { action: 'round_active', roundId: state.roundId };
   } finally {
-    ticking = false;
+    await db.execute(sql`SELECT pg_advisory_unlock(727271)`);
   }
 }
 
