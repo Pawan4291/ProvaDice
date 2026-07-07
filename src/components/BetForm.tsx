@@ -156,7 +156,7 @@ export default function BetForm({
             Your pick: {pickedNumber}
           </div>
         )}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
           {[1, 2, 3, 4, 5, 6].map((n) => (
             <button
               key={n}
@@ -165,13 +165,19 @@ export default function BetForm({
               disabled={status === 'pending'}
               style={{
                 flex: 1,
-                padding: '10px 0',
-                borderRadius: 8,
-                border: pickedNumber === n ? '1px solid #f97316' : '1px solid rgba(249,115,22,0.3)',
-                background: pickedNumber === n ? 'rgba(249,115,22,0.2)' : 'rgba(249,115,22,0.05)',
-                color: pickedNumber === n ? '#f97316' : '#888',
-                fontWeight: 700,
+                aspectRatio: '1',
+                borderRadius: '50%',
+                border: pickedNumber === n ? '2px solid #fff' : '1px solid rgba(249,115,22,0.3)',
+                background: pickedNumber === n
+                  ? 'radial-gradient(circle at 35% 30%, #ffb347, #f97316 60%, #ea6a07)'
+                  : 'rgba(249,115,22,0.05)',
+                color: pickedNumber === n ? '#fff' : '#888',
+                fontWeight: 800,
+                fontSize: '1.1rem',
                 cursor: 'pointer',
+                boxShadow: pickedNumber === n ? '0 0 16px rgba(249,115,22,0.9), 0 0 4px rgba(255,255,255,0.6) inset' : 'none',
+                transform: pickedNumber === n ? 'scale(1.12)' : 'scale(1)',
+                transition: 'all 0.2s ease',
               }}
             >
               {n}
