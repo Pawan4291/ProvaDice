@@ -148,7 +148,10 @@ export default function BetForm({
           </div>
         </div>
       )}
-      <form onSubmit={handleSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <form onSubmit={handleSubmit}>
+        <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: 8, fontWeight: 600 }}>
+          Choose how much to bet
+        </div>
         {/* Quick bet buttons */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
           {quickBets.map((v) => (
@@ -182,6 +185,9 @@ export default function BetForm({
             Your pick: {pickedNumber}
           </div>
         )}
+        <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: 8, fontWeight: 600 }}>
+          Pick the number you're betting on
+        </div>
         <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
           {[1, 2, 3, 4, 5, 6].map((n) => (
             <button

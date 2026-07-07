@@ -573,7 +573,6 @@ export default function PlayPage() {
           { icon: '⚡', label: 'Instant Payouts', desc: 'Auto-sent on settle' },
           { icon: '⚖️', label: 'Weighted Pot', desc: 'Bet more = more odds' },
           { icon: '🛡️', label: 'Auto Refunds', desc: 'If round underfills' },
-          { icon: '📜', label: 'Audit Log', desc: 'Every event on record' },
         ].map((f) => (
           <div
             key={f.label}
