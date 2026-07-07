@@ -166,6 +166,24 @@ export async function tickClock(): Promise<{ action: string; roundId?: string }>
 
   currentRoundId = state.roundId;
 
+  if (state.status === 'settling') {
+    // Previous settle attempt crashed partway through — retry it
+    console.log(`[RoundClock] Retrying stuck settling round ${state.roundId}`);
+    try {
+      const result = await settleRound(state.roundId, sendUCT);
+      currentRoundId = null;
+      const treasury = await checkAndRefillTreasury();
+      if (treasury.sufficient) {
+        const newRound = await openNewRound();
+        currentRoundId = newRound.roundId;
+      }
+      return { action: 'round_settled_retry', roundId: state.roundId };
+    } catch (err) {
+      console.error(`Retry settle failed for ${state.roundId}:`, err);
+      return { action: 'settle_retry_failed', roundId: state.roundId };
+    }
+  }
+
   if (state.status === 'open' && state.timeRemainingMs <= 0) {
     // Round time is up — settle it
     console.log(`[RoundClock] Round ${state.roundId} time up — settling`);
