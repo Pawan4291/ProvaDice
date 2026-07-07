@@ -93,7 +93,7 @@ export function SphereWalletProvider({ children }: { children: ReactNode }) {
         });
       }
 
-      return new ConnectClient({ transport, dapp: DAPP_INFO, silent });
+      return new ConnectClient({ transport, dapp: DAPP_INFO, network: 'testnet', silent });
     } catch (err) {
       if (!silent) throw err;
       return null;
