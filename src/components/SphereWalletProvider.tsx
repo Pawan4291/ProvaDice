@@ -170,12 +170,13 @@ return new ConnectClient({
     async (amountBaseUnits: bigint, roundId: string): Promise<string> => {
       if (!clientRef.current) throw new Error('Wallet not connected');
 
-      const result = (await clientRef.current.intent('send', {
-        recipient: `@${HOUSE_NAMETAG}`,
-        amount: amountBaseUnits.toString(),
-        coinId: UCT_COIN_ID,
-        memo: `ProvaDice bet round:${roundId}`,
-      })) as { txId?: string; transferId?: string; id?: string } | null;
+     const result = (await clientRef.current.intent('send', {
+  to: `@${HOUSE_NAMETAG}`,
+  recipient: `@${HOUSE_NAMETAG}`,
+  amount: amountBaseUnits.toString(),
+  coinId: UCT_COIN_ID,
+  memo: `ProvaDice bet round:${roundId}`,
+})) as { txId?: string; transferId?: string; id?: string } | null;
 
       return (
         result?.txId ?? result?.transferId ?? result?.id ?? `tx-${Date.now()}`

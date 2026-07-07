@@ -50,7 +50,7 @@ interface RoundStatusResponse {
 const POLL_INTERVAL = 3000; // 3 seconds
 
 export default function PlayPage() {
-  const { connected, identity, connecting, error: walletError, connect, sendBet } = useWallet();
+ const { connected, identity, connecting, error: walletError, connect, disconnect, sendBet } = useWallet();
 
   const [roundState, setRoundState] = useState<RoundState | null>(null);
   const [recentRounds, setRecentRounds] = useState<RecentRound[]>([]);
@@ -566,7 +566,22 @@ export default function PlayPage() {
                       </div>
                       <div style={{ fontSize: '0.7rem', color: '#555' }}>Sphere wallet connected</div>
                     </div>
-                    <div style={{ marginLeft: 'auto', width: 8, height: 8, background: '#22c55e', borderRadius: '50%', boxShadow: '0 0 8px #22c55e' }} />
+                   <button
+                      onClick={disconnect}
+                      style={{
+                        marginLeft: 'auto',
+                        background: 'transparent',
+                        border: '1px solid #444',
+                        color: '#999',
+                        fontSize: '0.75rem',
+                        padding: '4px 10px',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Disconnect
+                    </button>
+                    <div style={{ width: 8, height: 8, background: '#22c55e', borderRadius: '50%', boxShadow: '0 0 8px #22c55e' }} />
                   </motion.div>
 
                   {/* Bet form */}
