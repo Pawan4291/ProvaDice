@@ -149,7 +149,7 @@ export default function BetForm({
         </div>
       )}
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-       <div>
+       <div style={{ marginBottom: 8 }}>
         <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: 8, fontWeight: 600 }}>
           Choose how much to bet
         </div>
@@ -187,7 +187,7 @@ export default function BetForm({
             Your pick: {pickedNumber}
           </div>
         )}
-        <div>
+        <div style={{ marginBottom: 8 }}>
         <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: 8, fontWeight: 600 }}>
           Pick the number you're betting on
         </div>
@@ -234,7 +234,7 @@ export default function BetForm({
           />
         </div>
 
-        <div style={{ flex: 1 }} />
+       <div style={{ flex: 1, minHeight: 24 }} />
 
         <AnimatePresence>
           {errorMsg && (
