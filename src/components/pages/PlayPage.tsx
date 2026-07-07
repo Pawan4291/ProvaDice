@@ -37,6 +37,7 @@ interface RecentRound {
   roundId: string;
   status: string;
   winnerNametag?: string;
+  winningNumber?: number;
   totalPotBaseUnits: string;
   playerCount: number;
   payoutTxId?: string;
@@ -57,7 +58,8 @@ export default function PlayPage() {
   const [loading, setLoading] = useState(true);
   const [settling, setSettling] = useState(false);
   const [winnerFace, setWinnerFace] = useState(1);
-  const [lastWinner, setLastWinner] = useState<RecentRound | null>(null);
+ const [lastWinner, setLastWinner] = useState<RecentRound | null>(null);
+  const [popupCountdown, setPopupCountdown] = useState<number | null>(null);
   const [timeRemainingMs, setTimeRemainingMs] = useState(ROUND_DURATION_MS);
   const prevRoundIdRef = useRef<string | null>(null);
 
@@ -77,14 +79,25 @@ export default function PlayPage() {
         const settled = data.recentRounds.find(
           (r) => r.roundId === prevRoundIdRef.current && r.status === 'settled'
         );
-        if (settled) {
+       if (settled) {
           setLastWinner(settled);
           setSettling(true);
-          // Pick a random face for the dice animation (1-6)
-          setWinnerFace(Math.floor(Math.random() * 6) + 1);
+          if (settled.winningNumber) setWinnerFace(settled.winningNumber);
           setTimeout(() => {
             setSettling(false);
           }, 3000);
+
+          // Show winner popup with a 10s countdown to next round
+          setPopupCountdown(10);
+          const countdownInterval = setInterval(() => {
+            setPopupCountdown((prev) => {
+              if (prev === null || prev <= 1) {
+                clearInterval(countdownInterval);
+                return null;
+              }
+              return prev - 1;
+            });
+          }, 1000);
         }
       }
 
@@ -328,6 +341,50 @@ export default function PlayPage() {
               </motion.div>
 
               {/* Winner announcement */}
+              <AnimatePresence>
+                {popupCountdown !== null && lastWinner && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    style={{
+                      position: 'fixed',
+                      inset: 0,
+                      background: 'rgba(0,0,0,0.7)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: 1000,
+                    }}
+                  >
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      style={{
+                        background: '#161616',
+                        border: '1px solid rgba(249,115,22,0.4)',
+                        borderRadius: 24,
+                        padding: '40px 48px',
+                        textAlign: 'center',
+                        boxShadow: '0 0 60px rgba(249,115,22,0.3)',
+                      }}
+                    >
+                      <div style={{ fontSize: '3rem', marginBottom: 8 }}>🎲</div>
+                      <div style={{ fontSize: '1rem', color: '#888', marginBottom: 8 }}>Winning Number</div>
+                      <div style={{ fontSize: '4rem', fontWeight: 900, color: '#f97316', marginBottom: 16 }}>
+                        {lastWinner.winningNumber ?? '?'}
+                      </div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', marginBottom: 8 }}>
+                        {lastWinner.winnerNametag ? `@${lastWinner.winnerNametag} wins!` : 'No winners this round'}
+                      </div>
+                      <div style={{ fontSize: '0.85rem', color: '#666' }}>
+                        Next round starts in {popupCountdown}s
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <AnimatePresence>
                 {settling && lastWinner && (
                   <motion.div
