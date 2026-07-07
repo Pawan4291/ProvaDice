@@ -11,6 +11,7 @@ interface BetFormProps {
   walletConnected: boolean;
   nametag: string | null;
  onSendBet: (amountBaseUnits: bigint, roundId: string, pickedNumber: number) => Promise<string>;
+  alreadyBet?: boolean;
 }
 
 export default function BetForm({
@@ -20,6 +21,7 @@ export default function BetForm({
   walletConnected,
   nametag,
   onSendBet,
+  alreadyBet,
 }: BetFormProps) {
  const [betUCT, setBetUCT] = useState('');
   const [pickedNumber, setPickedNumber] = useState<number | null>(null);
@@ -243,7 +245,7 @@ export default function BetForm({
 
         <motion.button
           type="submit"
-         disabled={!roundId || status === 'pending' || !betUCT || !pickedNumber}
+         disabled={!roundId || status === 'pending' || !betUCT || !pickedNumber || alreadyBet}
           whileHover={roundId && status !== 'pending' && betUCT ? { scale: 1.02 } : {}}
           whileTap={roundId && status !== 'pending' && betUCT ? { scale: 0.98 } : {}}
           className="btn-orange"
@@ -261,6 +263,8 @@ export default function BetForm({
               <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</span>
               Sending via Sphere...
             </span>
+          ) : alreadyBet ? (
+            '✅ Bet placed — wait for reveal'
           ) : (
             `🎲 Place Bet`
           )}

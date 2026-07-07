@@ -15,6 +15,7 @@ interface BetInfo {
   amountBaseUnits: string;
   txId: string;
   confirmedAt: string;
+  pickedNumber?: number;
 }
 
 interface RoundState {
@@ -432,6 +433,11 @@ export default function PlayPage() {
                         <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f97316' }}>
                           {baseUnitsToUct(userBet.amountBaseUnits).toFixed(4)} {UCT_SYMBOL}
                         </div>
+                        {userBet.pickedNumber && (
+                          <div style={{ fontSize: '0.8rem', color: '#888', marginTop: 4 }}>
+                            Your pick: <span style={{ color: '#f97316', fontWeight: 700 }}>{userBet.pickedNumber}</span>
+                          </div>
+                        )}
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: '0.7rem', color: '#888', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>
@@ -650,6 +656,7 @@ export default function PlayPage() {
                     nametag={identity?.nametag ?? null}
                     onSendBet={sendBet}
                     onBetSubmitted={fetchRoundStatus}
+                    alreadyBet={!!userBet}
                   />
                 </div>
               )}
