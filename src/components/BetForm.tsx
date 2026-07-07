@@ -151,7 +151,12 @@ export default function BetForm({
           ))}
         </div>
 
-       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+      {pickedNumber && (
+          <div style={{ fontSize: '0.85rem', color: '#f97316', fontWeight: 700, marginBottom: 8 }}>
+            Your pick: {pickedNumber}
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
           {[1, 2, 3, 4, 5, 6].map((n) => (
             <button
               key={n}

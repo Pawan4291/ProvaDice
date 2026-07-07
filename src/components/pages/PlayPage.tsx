@@ -272,6 +272,7 @@ export default function PlayPage() {
                     <div style={{ width: 120, height: 120, borderRadius: '50%', background: 'rgba(249,115,22,0.05)', border: '6px solid rgba(249,115,22,0.1)' }} />
                   ) : (
                     <RoundTimer
+                      key={roundState?.roundId ?? 'none'}
                       endTime={roundState?.endTime ?? null}
                       roundDurationMs={ROUND_DURATION_MS}
                       onTimeUpdate={setTimeRemainingMs}

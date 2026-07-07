@@ -133,7 +133,7 @@ export default function RoundTimer({
           textTransform: 'uppercase',
         }}
       >
-        {remainingMs <= 0 ? 'SETTLING...' : urgency ? 'CLOSING SOON' : 'ROUND CLOSES'}
+       {remainingMs <= 0 ? `REVEALING IN ${Math.max(0, 5 - Math.floor(-remainingMs / 1000))}s` : urgency ? 'CLOSING SOON' : 'ROUND CLOSES'}
       </motion.p>
     </div>
   );
