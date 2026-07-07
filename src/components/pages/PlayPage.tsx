@@ -566,8 +566,8 @@ export default function PlayPage() {
       )}
     </div>
 
-    <div>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         {[
           { icon: '🔐', label: 'Provably Fair', desc: 'Commit-reveal scheme' },
           { icon: '⚡', label: 'Instant Payouts', desc: 'Auto-sent on settle' },
