@@ -148,12 +148,13 @@ export default function BetForm({
           </div>
         </div>
       )}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+       <div>
         <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: 8, fontWeight: 600 }}>
           Choose how much to bet
         </div>
         {/* Quick bet buttons */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {quickBets.map((v) => (
             <button
               key={v}
@@ -177,7 +178,8 @@ export default function BetForm({
             >
               {v} {UCT_SYMBOL}
             </button>
-          ))}
+         ))}
+        </div>
         </div>
 
       {pickedNumber && (
@@ -185,10 +187,11 @@ export default function BetForm({
             Your pick: {pickedNumber}
           </div>
         )}
+        <div>
         <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: 8, fontWeight: 600 }}>
           Pick the number you're betting on
         </div>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 10 }}>
           {[1, 2, 3, 4, 5, 6].map((n) => (
             <button
               key={n}
@@ -214,10 +217,11 @@ export default function BetForm({
             >
               {n}
             </button>
-          ))}
+         ))}
+        </div>
         </div>
 
-        <div style={{ marginBottom: 16 }}>
+        <div>
           <input
             type="number"
             value={betUCT}
@@ -229,6 +233,8 @@ export default function BetForm({
             disabled={status === 'pending'}
           />
         </div>
+
+        <div style={{ flex: 1 }} />
 
         <AnimatePresence>
           {errorMsg && (
