@@ -1,5 +1,5 @@
 'use client';
-
+import { SPHERE_NETWORKS } from '@unicitylabs/sphere-sdk/connect';
 import { createContext, useContext, useState, useCallback, useRef, ReactNode, useEffect } from 'react';
 import { UCT_COIN_ID } from '@/config/constants';
 
@@ -93,7 +93,7 @@ export function SphereWalletProvider({ children }: { children: ReactNode }) {
         });
       }
 
-      return new ConnectClient({ transport, dapp: DAPP_INFO, network: 'testnet', silent });
+      return new ConnectClient({ transport, dapp: DAPP_INFO, network: SPHERE_NETWORKS.testnet2, silent });
     } catch (err) {
       if (!silent) throw err;
       return null;
